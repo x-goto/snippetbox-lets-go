@@ -16,6 +16,18 @@ func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	snippets, err := app.models.Snippets.GetLatest()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	data := &Templates{Snippets: snippets}
+
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%v\n", snippet)
+	}
+
 	files := []string{
 		"./ui/html/home.page.tmpl",
 		"./ui/html/base.layout.tmpl",
@@ -30,8 +42,7 @@ func (app *application) homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ts.Execute(w, nil)
-	if err != nil {
+	if err = ts.Execute(w, data); err != nil {
 		app.logger.PrintError(err, nil)
 		app.serverErrorResponse(w, r, err)
 	}
@@ -79,5 +90,22 @@ func (app *application) showSnippetHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	fmt.Fprintf(w, "%v", snippet)
+	data := &Templates{Snippet: snippet}
+
+	files := []string{
+		"./ui/html/show.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+		"./ui/html/header.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if err = ts.Execute(w, data); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }

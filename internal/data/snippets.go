@@ -11,7 +11,7 @@ var ErrRecordNotFound = errors.New("models: no matching error found")
 type Snippet struct {
 	ID      int
 	Title   string
-	Content string
+	Content sql.NullString
 	Created time.Time
 	Expires time.Time
 }
